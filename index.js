@@ -63,8 +63,6 @@ async function runStocksCheck() {
 cron.schedule("*/10 * * * *", ()=>{
     axios.get(api_link+'/keepRun').then((res)=>{
         console.log("Keep running");
-    }).catch((e)=>{
-        console.log(e);
     });
 })
 
@@ -72,8 +70,6 @@ cron.schedule("0 7 * * MON-FRI", async ()=>{
     runStocksCheck().then(()=>{
         sendEmail();
     });
-}).catch((e)=>{
-    console.log(e);
 });
 
 
