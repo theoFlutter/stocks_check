@@ -34,7 +34,7 @@ async function sendEmail(){
 
     transporter.sendMail({
         from: "theo.flutter@gmail.com",
-        to: ["theolpy@gmail.com"],
+        to: ["theolpy@gmail.com", "cathylilingwai@gmail.com"],
         subject: `Stocks Check on ${today}`,
         html: `<h1>Please check the link </h1> 
                 <br>
