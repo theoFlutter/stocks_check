@@ -46,7 +46,12 @@ async function sendEmail(){
 
 async function runStocksCheck() {
 
-    PythonShell.run('stock_buy.py', null, function (err) {
+    let options = {
+        scriptPath: path.join(__dirname+'/public'),
+    }
+
+
+    PythonShell.run('stock_buy.py', options, function (err) {
         console.log(err);
     }).then((result) => {
         console.log('Python Run Completed');
@@ -80,9 +85,21 @@ app.get('/keepRun', (req, res)=>{
 
 app.get('/', (req, res) => {
     res.writeHead(200, {"Content-Type": "text/html"});
-    var readStream = fs.createReadStream('HK_MACD.html');
-    readStream.pipe(res);
+    let readIndexStream = fs.createReadStream('index.html');
+    readIndexStream.pipe(res);
 });
+
+app.get('/HK_MACD', (req, res)=>{
+    res.writeHead(200, {"Content-Type": "text/html"});
+    let readHKStream = fs.createReadStream('HK_MACD.html');
+    readHKStream.pipe(res);
+})
+
+app.get('/US_MACD', (req, res)=>{
+    res.writeHead(200, {"Content-Type": "text/html"});
+    let readHKStream = fs.createReadStream('US_MACD.html');
+    readHKStream.pipe(res);
+})
 
 
 //Start the server
@@ -90,3 +107,4 @@ server.listen(PORT, (req, res)=>{
     console.log(`Server is running on port ${PORT}`);
 })
 
+//runStocksCheck();
