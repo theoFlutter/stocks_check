@@ -4,26 +4,21 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const nodeMailer = require('nodemailer');
+const axios = require('axios');
+const cron = require('node-cron');
 require('dotenv').config();
 
 const app = express();
+const server = http.createServer(app);
 
 const PORT = 8000;
+const today = new Date().getDate() + '-' + (new Date().getMonth()+1) + '-' + new Date().getFullYear();
+const api_link = 'https://stocks-check.onrender.com';
 
 app.use(express.static(path.join(__dirname)));
 
 //Run stocks check python script
-async function runStocksCheck() {
 
-    PythonShell.run('stock_buy.py', null, function (err) {
-        console.log(err);
-    }).then((result) => {
-        console.log('Python Run Completed');
-    }).catch((err) => {
-        console.log(err);
-    });
-
-};
 
 
 //Send the email
@@ -37,45 +32,65 @@ async function sendEmail(){
         }
     });
 
-    let html = await fs.createReadStream('./HK_MACD.html', 'utf8');
-
     transporter.sendMail({
         from: "theo.flutter@gmail.com",
         to: ["theolpy@gmail.com"],
-        subject: "Stocks",
-        attachments:[{filename: 'HK_MACD.html', path: './HK_MACD.html'}],
+        subject: `Stocks Check on ${today}`,
+        html: `<h1>Please check the link </h1> 
+                <br>
+                <h2>${api_link}</h2>`
     });
 
     console.log("Email sent");
 };
 
+async function runStocksCheck() {
+
+    PythonShell.run('stock_buy.py', null, function (err) {
+        console.log(err);
+    }).then((result) => {
+        console.log('Python Run Completed');
+    }).catch((err) => {
+        console.log(err);
+    }).then(()=>{
+        sendEmail();
+    });
+
+};
 
 
-http.createServer((req, res)=>{
+//Run Schedule function
+cron.schedule("*/10 * * * *", ()=>{
+    axios.get(api_link+'/keepRun').then((res)=>{
+        console.log("Keep running");
+    }).catch((e)=>{
+        console.log(e);
+    });
+})
 
+cron.schedule("0 7 * * MON-FRI", async ()=>{
+    runStocksCheck().then(()=>{
+        sendEmail();
+    });
+}).catch((e)=>{
+    console.log(e);
+});
+
+
+//Routes
+app.get('/keepRun', (req, res)=>{
+    res.send("Keep running");
+})
+
+app.get('/', (req, res) => {
     res.writeHead(200, {"Content-Type": "text/html"});
     var readStream = fs.createReadStream('HK_MACD.html');
     readStream.pipe(res);
-
-}).listen(PORT);
-
+});
 
 
+//Start the server
+server.listen(PORT, (req, res)=>{
+    console.log(`Server is running on port ${PORT}`);
+})
 
-console.log(`Server is running on port ${PORT}`);
-
-//sendEmail();
-// runStocksCheck();
-
-// app.get('/', (req, res) => {
-//     res.send("Loading page...");
-//     res.sendFile(path.join(__dirname, 'HK_MACD.html'));
-// });
-
-// server((req, res) => {
-
-// });
-
-// server.listen(PORT, (req, res)=>{
-//     console.log(`Server is running on port ${PORT}`);
-// })
