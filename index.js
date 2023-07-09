@@ -57,10 +57,7 @@ async function runStocksCheck() {
         console.log('Python Run Completed');
     }).catch((err) => {
         console.log(err);
-    }).then(()=>{
-        sendEmail();
-    });
-
+    })
 };
 
 
